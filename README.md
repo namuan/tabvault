@@ -86,6 +86,10 @@ Sessions you save via the extension are also stored locally (last 20). Go to the
 }
 ```
 
+## License
+
+[MIT](LICENSE)
+
 ## Permissions used
 
 | Permission | Why |
