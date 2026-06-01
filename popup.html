@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TabVault</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #faf7f2;
+      --bg2: #f0ebe3;
+      --bg3: #e6e0d6;
+      --border: rgba(0,0,0,0.08);
+      --border-hover: rgba(0,0,0,0.16);
+      --text: #2c2418;
+      --text2: #7a6e5e;
+      --text3: #a89b89;
+      --accent: #e07a2f;
+      --accent-dim: rgba(224,122,47,0.1);
+      --accent-hover: rgba(224,122,47,0.18);
+      --danger: #c94040;
+      --danger-dim: rgba(201,64,64,0.08);
+      --blue: #5b9cf6;
+      --blue-dim: rgba(91,156,246,0.1);
+      --radius: 8px;
+      --radius-sm: 5px;
+    }
+
+    body {
+      width: 360px;
+      min-height: 480px;
+      max-height: 600px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .logo-icon {
+      width: 26px;
+      height: 26px;
+      background: var(--accent);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-icon svg { width: 14px; height: 14px; }
+    .logo-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.3px;
+    }
+    .stats {
+      display: flex;
+      gap: 10px;
+    }
+    .stat {
+      text-align: right;
+    }
+    .stat-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 9px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      line-height: 1.4;
+    }
+
+    /* ── Tabs ── */
+    .nav {
+      display: flex;
+      padding: 8px 16px 0;
+      gap: 2px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .nav-btn {
+      background: none;
+      border: none;
+      color: var(--text3);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      padding: 6px 10px;
+      cursor: pointer;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .nav-btn:hover { color: var(--text2); }
+    .nav-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    /* ── Content area ── */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 16px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--bg3) transparent;
+    }
+    .content::-webkit-scrollbar { width: 4px; }
+    .content::-webkit-scrollbar-track { background: transparent; }
+    .content::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 4px; }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* ── Save panel ── */
+    .save-section { margin-bottom: 14px; }
+
+    .label {
+      font-size: 10px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 6px;
+    }
+
+    .input {
+      width: 100%;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      padding: 8px 10px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .input:focus { border-color: var(--accent); }
+    .input::placeholder { color: var(--text3); }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s;
+      text-align: center;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .btn-primary:hover { background: #c96e24; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-secondary {
+      background: var(--bg2);
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--border-hover); background: var(--bg3); }
+
+    .btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .divider span { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; }
+
+    /* Drop zone for restore */
+    .drop-zone {
+      border: 1.5px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 24px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .drop-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    .drop-zone-icon { color: var(--text3); margin-bottom: 8px; }
+    .drop-zone-icon svg { width: 24px; height: 24px; }
+    .drop-zone-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text2);
+      margin-bottom: 4px;
+    }
+    .drop-zone-sub { font-size: 10px; color: var(--text3); }
+
+    /* Session cards */
+    .session-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      position: relative;
+    }
+    .session-card:hover { border-color: var(--border-hover); background: var(--bg3); }
+    .session-card.selected {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .session-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .session-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      word-break: break-word;
+    }
+    .session-delete {
+      background: none;
+      border: none;
+      color: var(--text3);
+      cursor: pointer;
+      padding: 2px;
+      border-radius: 4px;
+      transition: color 0.15s, background 0.15s;
+      flex-shrink: 0;
+    }
+    .session-delete:hover { color: var(--danger); background: var(--danger-dim); }
+    .session-delete svg { width: 13px; height: 13px; display: block; }
+    .session-meta {
+      display: flex;
+      gap: 10px;
+      margin-top: 5px;
+    }
+    .session-chip {
+      font-size: 10px;
+      color: var(--text3);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .session-chip svg { width: 10px; height: 10px; }
+    .session-time {
+      font-size: 10px;
+      color: var(--text3);
+      margin-top: 3px;
+    }
+
+    /* Restore options */
+    .restore-opts {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .restore-opts .btn { flex: 1; padding: 7px 8px; font-size: 11px; }
+
+    /* Status toast */
+    .toast {
+      position: fixed;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%) translateY(60px);
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px 14px;
+      font-size: 11px;
+      color: var(--text);
+      white-space: nowrap;
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 999;
+      pointer-events: none;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.success { border-color: var(--accent); color: var(--accent); }
+    .toast.error { border-color: var(--danger); color: var(--danger); }
+
+    /* Spinner */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      width: 12px;
+      height: 12px;
+      border: 1.5px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      flex-shrink: 0;
+    }
+
+    /* Empty state */
+    .empty {
+      text-align: center;
+      padding: 32px 0;
+      color: var(--text3);
+    }
+    .empty svg { width: 32px; height: 32px; margin-bottom: 10px; opacity: 0.4; }
+    .empty-title { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+    .empty-sub { font-size: 11px; }
+
+    /* Fade in stagger */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .session-card { animation: fadeUp 0.2s ease both; }
+
+    /* ── Auto-save ── */
+    .autosave-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 0;
+    }
+    .autosave-row-label {
+      font-size: 12px;
+      color: var(--text);
+    }
+    .toggle {
+      position: relative;
+      display: inline-block;
+      width: 38px;
+      height: 20px;
+      cursor: pointer;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      height: 14px;
+      width: 14px;
+      left: 2px;
+      bottom: 2px;
+      background: var(--text3);
+      border-radius: 50%;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .toggle input:checked + .toggle-slider {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+    }
+    .toggle input:checked + .toggle-slider::before {
+      transform: translateX(18px);
+      background: var(--accent);
+    }
+    .interval-options {
+      display: flex;
+      gap: 6px;
+    }
+    .interval-btn {
+      flex: 1;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      color: var(--text2);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      padding: 7px 0;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .interval-btn:hover {
+      border-color: var(--border-hover);
+      color: var(--text);
+    }
+    .interval-btn.active {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    #autosave-interval-section {
+      transition: opacity 0.15s;
+    }
+    #autosave-interval-section.disabled {
+      opacity: 0.35;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1" y="2" width="12" height="9" rx="1.5" stroke="#fff" stroke-width="1.5"/>
+          <path d="M1 5h12" stroke="#fff" stroke-width="1.5"/>
+          <path d="M4 3.5V5" stroke="#fff" stroke-width="1"/>
+          <path d="M7 3.5V5" stroke="#fff" stroke-width="1"/>
+          <path d="M10 3.5V5" stroke="#fff" stroke-width="1"/>
+        </svg>
+      </div>
+      <span class="logo-name">TabVault</span>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-num" id="stat-tabs">–</div>
+        <div class="stat-label">tabs</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="stat-groups">–</div>
+        <div class="stat-label">groups</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="stat-windows">–</div>
+        <div class="stat-label">windows</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav class="nav">
+    <button class="nav-btn active" data-panel="save">Save</button>
+    <button class="nav-btn" data-panel="restore">Restore</button>
+    <button class="nav-btn" data-panel="history">History</button>
+    <button class="nav-btn" data-panel="autosave">Auto</button>
+  </nav>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- ── Save panel ── -->
+    <div class="panel active" id="panel-save">
+      <div class="save-section">
+        <div class="label">Session name</div>
+        <input type="text" class="input" id="session-name" placeholder="My session…" maxlength="80" />
+      </div>
+      <button class="btn btn-primary" id="btn-save">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 8l3.5 3.5L13 4"/>
+        </svg>
+        Save current session
+      </button>
+      <div class="divider"><span>what gets saved</span></div>
+      <div style="color: var(--text3); font-size: 11px; line-height: 1.8;">
+        <div>↳ all open windows &amp; tabs</div>
+        <div>↳ tab group names &amp; colors</div>
+        <div>↳ pinned tabs</div>
+        <div>↳ tab order</div>
+        <div style="margin-top:6px; color: var(--text3); opacity: 0.6;">⚠ chrome:// &amp; devtools tabs are skipped</div>
+      </div>
+    </div>
+
+    <!-- ── Restore panel ── -->
+    <div class="panel" id="panel-restore">
+      <div class="label">Upload a session file</div>
+      <div class="drop-zone" id="drop-zone">
+        <input type="file" id="file-input" accept=".json" />
+        <div class="drop-zone-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </div>
+        <div class="drop-zone-title">Drop .json file here</div>
+        <div class="drop-zone-sub">or click to browse</div>
+      </div>
+      <div id="restore-preview" style="display:none; margin-top:12px;">
+        <div class="session-card selected" style="cursor:default; animation:none;">
+          <div class="session-card-top">
+            <div class="session-name" id="preview-name">–</div>
+          </div>
+          <div class="session-meta">
+            <div class="session-chip">
+              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="2" width="10" height="7" rx="1"/><path d="M1 4h10"/></svg>
+              <span id="preview-tabs">–</span>
+            </div>
+            <div class="session-chip">
+              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="1" width="10" height="10" rx="1.5"/></svg>
+              <span id="preview-windows">–</span>
+            </div>
+          </div>
+          <div class="session-time" id="preview-date">–</div>
+        </div>
+        <div class="restore-opts">
+          <button class="btn btn-primary" id="btn-restore-new">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="12" height="10" rx="1.5"/>
+              <path d="M6 7h4M8 5v4"/>
+            </svg>
+            New window
+          </button>
+          <button class="btn btn-secondary" id="btn-restore-here">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 8l3 3 7-7"/>
+            </svg>
+            This window
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── History panel ── -->
+    <div class="panel" id="panel-history">
+      <div id="history-list">
+        <div class="empty">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="6" width="24" height="20" rx="2"/>
+            <path d="M4 11h24"/>
+            <path d="M9 8v3M16 8v3M23 8v3"/>
+          </svg>
+          <div class="empty-title">No saved sessions</div>
+          <div class="empty-sub">Save a session to see it here</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Auto-save panel ── -->
+    <div class="panel" id="panel-autosave">
+      <div class="save-section">
+        <div class="label">Auto-save</div>
+        <div class="autosave-row">
+          <span class="autosave-row-label">Enabled</span>
+          <label class="toggle">
+            <input type="checkbox" id="autosave-toggle" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="save-section" id="autosave-interval-section">
+        <div class="label">Interval</div>
+        <div class="interval-options" id="interval-options">
+          <button class="interval-btn" data-minutes="5">5m</button>
+          <button class="interval-btn" data-minutes="10">10m</button>
+          <button class="interval-btn" data-minutes="15">15m</button>
+          <button class="interval-btn" data-minutes="30">30m</button>
+          <button class="interval-btn" data-minutes="60">1h</button>
+        </div>
+      </div>
+      <div class="divider"><span>info</span></div>
+      <button class="btn btn-secondary" id="btn-test-autosave" style="margin-bottom:12px;">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="8" cy="8" r="6"/>
+          <path d="M8 5v3l2 2"/>
+        </svg>
+        Test auto-save now
+      </button>
+      <div class="divider"><span>details</span></div>
+      <div style="color: var(--text3); font-size: 11px; line-height: 1.8;">
+        <div>↳ saves to local history only</div>
+        <div>↳ no file download</div>
+        <div>↳ keeps last 20 snapshots</div>
+        <div style="margin-top:6px; color: var(--text3); opacity: 0.6;">⚠ chrome must be running for alarms to fire</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
