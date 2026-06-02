@@ -470,17 +470,32 @@
 
   <!-- Nav -->
   <nav class="nav">
-    <button class="nav-btn active" data-panel="save">Save</button>
+    <button class="nav-btn active" data-panel="history">History</button>
+    <button class="nav-btn" data-panel="save">Save</button>
     <button class="nav-btn" data-panel="restore">Restore</button>
-    <button class="nav-btn" data-panel="history">History</button>
     <button class="nav-btn" data-panel="autosave">Auto</button>
   </nav>
 
   <!-- Content -->
   <div class="content">
 
+    <!-- ── History panel ── -->
+    <div class="panel active" id="panel-history">
+      <div id="history-list">
+        <div class="empty">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="6" width="24" height="20" rx="2"/>
+            <path d="M4 11h24"/>
+            <path d="M9 8v3M16 8v3M23 8v3"/>
+          </svg>
+          <div class="empty-title">No saved sessions</div>
+          <div class="empty-sub">Save a session to see it here</div>
+        </div>
+      </div>
+    </div>
+
     <!-- ── Save panel ── -->
-    <div class="panel active" id="panel-save">
+    <div class="panel" id="panel-save">
       <div class="save-section">
         <div class="label">Session name</div>
         <input type="text" class="input" id="session-name" placeholder="My session…" maxlength="80" />
@@ -547,21 +562,6 @@
             </svg>
             This window
           </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── History panel ── -->
-    <div class="panel" id="panel-history">
-      <div id="history-list">
-        <div class="empty">
-          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="4" y="6" width="24" height="20" rx="2"/>
-            <path d="M4 11h24"/>
-            <path d="M9 8v3M16 8v3M23 8v3"/>
-          </svg>
-          <div class="empty-title">No saved sessions</div>
-          <div class="empty-sub">Save a session to see it here</div>
         </div>
       </div>
     </div>

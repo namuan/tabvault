@@ -363,3 +363,4 @@ btnTestAutosave.addEventListener("click", async () => {
 // ─── Init ────────────────────────────────────────────────────────────────────
 loadStats();
 loadAutoSaveConfig();
+loadHistory();
