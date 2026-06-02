@@ -5,6 +5,9 @@ const SCHEMA_VERSION = "1.0";
 const AUTO_SAVE_ALARM = "tabvault-auto-save";
 const AUTO_SAVE_DEFAULT_MINUTES = 15;
 const AUTO_SAVE_INTERVALS = [5, 10, 15, 30, 60];
+const AUTO_SAVE_MAX_SNAPSHOTS = 5;
+const AUTO_SAVE_SESSION_NAME = "Auto-save";
+const MAX_SESSIONS = 20;
 
 // URLs that cannot be restored
 const SKIP_URL_PREFIXES = [
@@ -224,7 +227,22 @@ async function saveSessionToStorage(session) {
     windowCount: session.windows.length,
     data: session,
   });
-  if (sessions.length > 20) sessions.pop();
+
+  const isAutoSave = session.name === AUTO_SAVE_SESSION_NAME;
+  if (isAutoSave) {
+    let autoCount = 0;
+    const filtered = sessions.filter((s) => {
+      if (s.name === AUTO_SAVE_SESSION_NAME) {
+        autoCount++;
+        return autoCount <= AUTO_SAVE_MAX_SNAPSHOTS;
+      }
+      return true;
+    });
+    sessions.length = 0;
+    sessions.push(...filtered);
+  }
+
+  if (sessions.length > MAX_SESSIONS) sessions.length = MAX_SESSIONS;
   try {
     await chrome.storage.local.set({ sessions });
   } catch (e) {
@@ -276,7 +294,7 @@ async function setAutoSaveConfig(config) {
 async function handleAutoSave() {
   console.log("[TabVault] handleAutoSave started");
   try {
-    const session = await captureSession("Auto-save");
+    const session = await captureSession(AUTO_SAVE_SESSION_NAME);
     console.log("[TabVault] captured session:", session.name, session.windows.length, "windows,", session.windows.reduce((n, w) => n + w.tabs.length, 0), "tabs");
     const sessions = await saveSessionToStorage(session);
     console.log("[TabVault] saved to storage, total sessions:", sessions.length);
